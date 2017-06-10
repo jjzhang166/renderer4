@@ -4,6 +4,7 @@ include_directories(../include)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/build)
 add_executable(renderer main.cpp glad.c)
+target_compile_features(renderer PRIVATE cxx_auto_type)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
