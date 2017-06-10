@@ -2,6 +2,10 @@
 
 Messing around with OpenGL. Uses GLFW3 and GLAD. Later, maybe Assimp and GLM.
 
+Latest output:
+![current screenshot](https://raw.githubusercontent.com/stevensona/renderer/master/screenshot.png)
+
+
 # Linux preparation steps
 
 ```
