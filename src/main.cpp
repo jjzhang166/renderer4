@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "Shader.h"
+#include "Camera.h"
 
 void framebuffer_resize(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
@@ -36,17 +37,12 @@ int main(int argc, char** argv) {
     glViewport(0, 0, 1024, 768);
     glfwSetFramebufferSizeCallback(window, framebuffer_resize);
 
+    Camera camera(glm::vec3(0,0, 3));
 
     const glm::vec2 SCREEN_SIZE(1024, 768);
     const auto ratio = SCREEN_SIZE.x / SCREEN_SIZE.y;
 
     auto projectionMatrix = glm::perspective(glm::radians(45.f), ratio, 0.1f, 100.f);
-
-    auto viewMatrix = glm::lookAt(
-            glm::vec3(1, 1, 3),
-            glm::vec3(0, 0, 0),
-            glm::vec3(0, 1, 0)
-    );
     auto modelMatrix = glm::mat4(1.f);
 
 
@@ -77,18 +73,22 @@ int main(int argc, char** argv) {
         glEnableVertexAttribArray(0);
 
         flatRed.use();
-        glUniformMatrix4fv(flatRed.uniformLocation("model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
-        glUniformMatrix4fv(flatRed.uniformLocation("view"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
-        glUniformMatrix4fv(flatRed.uniformLocation("projection"), 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+        glUniformMatrix4fv(flatRed.getUniformLocation("model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+        glUniformMatrix4fv(flatRed.getUniformLocation("projection"), 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
+        glEnable(GL_DEPTH_TEST);
 
         while(!glfwWindowShouldClose(window)) {
             glfwPollEvents();
 
             glClearColor(1.0f, 0.933f, 0.678f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             flatRed.use();
+
+            auto viewMatrix = camera.getViewMatrix();
+            glUniformMatrix4fv(flatRed.getUniformLocation("view"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
+
             glBindVertexArray(vao);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
             glBindVertexArray(0);

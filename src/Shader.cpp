@@ -63,7 +63,7 @@ void Shader::use() {
     glUseProgram(program);
 }
 
-GLuint Shader::uniformLocation(const std::string& name) {
+GLuint Shader::getUniformLocation(const std::string &name) {
     return glGetUniformLocation(program, name.c_str());
 }
 

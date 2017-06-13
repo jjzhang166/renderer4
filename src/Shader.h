@@ -21,7 +21,7 @@ class Shader {
 public:
     Shader(const std::string& vsFilename, const std::string& fsFilename);
     void use();
-    GLuint uniformLocation(const std::string& name);
+    GLuint getUniformLocation(const std::string &name);
     ~Shader();
 };
 
