@@ -1,5 +1,10 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
 #include "Shader.h"
@@ -7,6 +12,7 @@
 void framebuffer_resize(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }
+
 
 int main(int argc, char** argv) {
     glfwInit();
@@ -29,6 +35,19 @@ int main(int argc, char** argv) {
 
     glViewport(0, 0, 1024, 768);
     glfwSetFramebufferSizeCallback(window, framebuffer_resize);
+
+
+    const glm::vec2 SCREEN_SIZE(1024, 768);
+    const auto ratio = SCREEN_SIZE.x / SCREEN_SIZE.y;
+
+    auto projectionMatrix = glm::perspective(glm::radians(45.f), ratio, 0.1f, 100.f);
+
+    auto viewMatrix = glm::lookAt(
+            glm::vec3(1, 1, 3),
+            glm::vec3(0, 0, 0),
+            glm::vec3(0, 1, 0)
+    );
+    auto modelMatrix = glm::mat4(1.f);
 
 
     try {
@@ -56,6 +75,12 @@ int main(int argc, char** argv) {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
+
+        flatRed.use();
+        glUniformMatrix4fv(flatRed.uniformLocation("model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+        glUniformMatrix4fv(flatRed.uniformLocation("view"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
+        glUniformMatrix4fv(flatRed.uniformLocation("projection"), 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+
 
         while(!glfwWindowShouldClose(window)) {
             glfwPollEvents();

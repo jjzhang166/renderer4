@@ -63,6 +63,10 @@ void Shader::use() {
     glUseProgram(program);
 }
 
+GLuint Shader::uniformLocation(const std::string& name) {
+    return glGetUniformLocation(program, name.c_str());
+}
+
 Shader::~Shader() {
     if(glIsProgram(program)) {
         glDeleteProgram(program);
