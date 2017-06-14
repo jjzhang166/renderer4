@@ -11,7 +11,7 @@
 
 class Shader {
 
-    GLuint vert, frag, program;
+    GLuint mVert, mFrag, mProgram;
 
     std::string readFile(const std::string& filename);
     GLuint compile(GLenum type, const std::string& filename);
@@ -21,7 +21,7 @@ class Shader {
 public:
     Shader(const std::string& vsFilename, const std::string& fsFilename);
     void use();
-    GLuint getUniformLocation(const std::string &name);
+    GLint getUniformLocation(const std::string &name);
     ~Shader();
 };
 

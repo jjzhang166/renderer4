@@ -10,8 +10,35 @@
 #include "Shader.h"
 #include "Camera.h"
 
-void framebuffer_resize(GLFWwindow* window, int width, int height) {
+
+bool keyW = false, keyA = false, keyS = false, keyD = false;
+float pitch = 0.0f, yaw = 0.0f;
+
+
+void framebufferSize(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
+}
+
+void key(GLFWwindow* window, int key, int scanCode, int action, int mods) {
+
+    if(action == GLFW_PRESS) {
+        if(key == GLFW_KEY_W) keyW = true;
+        if(key == GLFW_KEY_S) keyS = true;
+        if(key == GLFW_KEY_A) keyA = true;
+        if(key == GLFW_KEY_D) keyD = true;
+        if(key == GLFW_KEY_ESCAPE) glfwSetWindowShouldClose(window, true);
+    } else if(action == GLFW_RELEASE) {
+        if(key == GLFW_KEY_W)	keyW = false;
+        if(key == GLFW_KEY_S)	keyS = false;
+        if(key == GLFW_KEY_A)	keyA = false;
+        if(key == GLFW_KEY_D)	keyD = false;
+    }
+}
+
+void cursorPos(GLFWwindow* window, double xPos, double yPos) {
+    yaw = 512 - xPos;
+    pitch = 384 - yPos;
+    glfwSetCursorPos(window, 512, 384);
 }
 
 
@@ -35,14 +62,18 @@ int main(int argc, char** argv) {
     }
 
     glViewport(0, 0, 1024, 768);
-    glfwSetFramebufferSizeCallback(window, framebuffer_resize);
+    glfwSetFramebufferSizeCallback(window, framebufferSize);
+    glfwSetKeyCallback(window, key);
+    glfwSetCursorPos(window, 512, 384);
 
-    Camera camera(glm::vec3(0,0, 3));
+    glfwSetCursorPosCallback(window, cursorPos);
+
+    Camera camera(glm::vec3(0,0, -3));
 
     const glm::vec2 SCREEN_SIZE(1024, 768);
     const auto ratio = SCREEN_SIZE.x / SCREEN_SIZE.y;
 
-    auto projectionMatrix = glm::perspective(glm::radians(45.f), ratio, 0.1f, 100.f);
+    auto projectionMatrix = camera.getProjectionMatrix();
     auto modelMatrix = glm::mat4(1.f);
 
 
@@ -78,8 +109,23 @@ int main(int argc, char** argv) {
 
         glEnable(GL_DEPTH_TEST);
 
+        auto lastFrame = glfwGetTime();
         while(!glfwWindowShouldClose(window)) {
+            auto delta = glfwGetTime() - lastFrame;
+            lastFrame = glfwGetTime();
+
             glfwPollEvents();
+
+
+            if(keyW) camera.dolly(delta * 1.0f);
+            if(keyA) camera.truck(delta * -1.0);
+            if(keyS) camera.dolly(delta * -1.0);
+            if(keyD) camera.truck(delta * 1.0);
+
+            camera.tilt(pitch / 200.0f);
+            camera.pan(yaw / 200.0f);
+            pitch = yaw = 0;
+
 
             glClearColor(1.0f, 0.933f, 0.678f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

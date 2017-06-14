@@ -11,18 +11,19 @@ std::string Shader::readFile(const std::string& filename) {
     if(!fs) {
         throw std::runtime_error(filename + " not found!");
     }
-    return std::string((std::istreambuf_iterator<char>(fs)),
+    std::string contents((std::istreambuf_iterator<char>(fs)),
                        std::istreambuf_iterator<char>());
+    return contents;
 }
 
 GLuint Shader::compile(GLenum type, const std::string& filename) {
-    auto src = readFile(filename).c_str();
-    std::cout << src << '\n';
+    auto src = readFile(filename);
+    auto src_cstr = src.c_str();
     auto shader = glCreateShader(type);
-    glShaderSource(shader, 1, &src, NULL);
+    glShaderSource(shader, 1, &src_cstr, NULL);
     glCompileShader(shader);
 
-    int status;
+    GLint status;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
     if(!status) {
         GLint length;
@@ -40,41 +41,44 @@ GLuint Shader::link(GLuint vert, GLuint frag) {
     glAttachShader(program, vert);
     glAttachShader(program, frag);
     glLinkProgram(program);
-    int status;
-    glGetShaderiv(program, GL_LINK_STATUS, &status);
+    GLint status;
+    glGetProgramiv(program, GL_LINK_STATUS, &status);
     if(!status) {
         GLint length;
-        glGetShaderiv(program, GL_INFO_LOG_LENGTH, &length);
-        std::vector<char> message(static_cast<unsigned int>(length));
+        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
+        std::vector<char> message(static_cast<unsigned int>(length, ' '));
         glGetProgramInfoLog(program, length, NULL, &message[0]);
+        std::cout << message.size();
         throw std::runtime_error(std::string(message.begin(), message.end()));
     }
+    std::cout << "Linked!\n";
     return program;
 }
 
 Shader::Shader(const std::string& vsFilename, const std::string& fsFilename) {
-    vert = compile(GL_VERTEX_SHADER, vsFilename);
-    frag = compile(GL_FRAGMENT_SHADER, fsFilename);
-    program = link(vert, frag);
+    mVert = compile(GL_VERTEX_SHADER, vsFilename);
+    mFrag = compile(GL_FRAGMENT_SHADER, fsFilename);
+    std::cout << "vert " << mVert << " frag " << mFrag;
+    mProgram = link(mVert, mFrag);
 
 }
 
 void Shader::use() {
-    glUseProgram(program);
+    glUseProgram(mProgram);
 }
 
-GLuint Shader::getUniformLocation(const std::string &name) {
-    return glGetUniformLocation(program, name.c_str());
+GLint Shader::getUniformLocation(const std::string &name) {
+    return glGetUniformLocation(mProgram, name.c_str());
 }
 
 Shader::~Shader() {
-    if(glIsProgram(program)) {
-        glDeleteProgram(program);
+    if(glIsProgram(mProgram)) {
+        glDeleteProgram(mProgram);
     }
-    if(glIsShader(vert)) {
-        glDeleteShader(vert);
+    if(glIsShader(mVert)) {
+        glDeleteShader(mVert);
     }
-    if(glIsShader(frag)) {
-        glDeleteShader(frag);
+    if(glIsShader(mFrag)) {
+        glDeleteShader(mFrag);
     }
 }
