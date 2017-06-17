@@ -7,8 +7,12 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 #include "Shader.h"
 #include "Camera.h"
+
 
 
 bool keyW = false, keyA = false, keyS = false, keyD = false;
@@ -78,13 +82,17 @@ int main(int argc, char** argv) {
 
 
     try {
-        Shader flatRed("../media/passthrough.vert", "../media/red.frag");
+
+
+        Shader flatRed("../media/passthrough.vert", "../media/textured.frag");
+
 
         float vertices[] = {
-            0.5f,  0.5f, 0.0f,
-            0.5f, -0.5f, 0.0f,
-            -0.5f, -0.5f, 0.0f,
-            -0.5f,  0.5f, 0.0f
+            // positions          // colors           // texture coords
+            0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,    1.0f, 1.0f,   // top right
+            0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,    1.0f, 0.0f,   // bottom right
+            -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+            -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left
         };
         unsigned int indices[] = {
             0, 1, 3,
@@ -100,14 +108,42 @@ int main(int argc, char** argv) {
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
+
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
+
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+        glEnableVertexAttribArray(2);
 
         flatRed.use();
         glUniformMatrix4fv(flatRed.getUniformLocation("model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
         glUniformMatrix4fv(flatRed.getUniformLocation("projection"), 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
         glEnable(GL_DEPTH_TEST);
+
+        GLuint texture;
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        int width, height, channels;
+        stbi_set_flip_vertically_on_load(true);
+        auto data = stbi_load("../media/dog.png", &width, &height, &channels, 0);
+        if(!data) {
+            throw std::runtime_error("Failed to load texture");
+        }
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        stbi_image_free(data);
+
 
         auto lastFrame = glfwGetTime();
         while(!glfwWindowShouldClose(window)) {
@@ -135,11 +171,13 @@ int main(int argc, char** argv) {
             auto viewMatrix = camera.getViewMatrix();
             glUniformMatrix4fv(flatRed.getUniformLocation("view"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
+            glBindTexture(GL_TEXTURE_2D, texture);
             glBindVertexArray(vao);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
             glBindVertexArray(0);
             glfwSwapBuffers(window);
         }
+        glDeleteTextures(1, &texture);
 
     } catch (const std::exception &error) {
         std::cout << "Exception: " << error.what();
