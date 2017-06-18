@@ -71,8 +71,7 @@ int main(int argc, char** argv) {
 
     glfwSetCursorPosCallback(window, cursorPos);
 
-    Camera camera(glm::vec3(0,0, 3));
-    camera.pan(glm::radians(180.0f));
+    Camera camera(glm::vec3(0,1,0));
 
     const glm::vec2 SCREEN_SIZE(1024, 768);
     const auto ratio = SCREEN_SIZE.x / SCREEN_SIZE.y;
@@ -84,15 +83,15 @@ int main(int argc, char** argv) {
     try {
 
 
-        Shader flatRed("../media/passthrough.vert", "../media/textured.frag");
+        Shader flatRed("../media/passthrough.vert", "../media/grid.frag");
 
 
         float vertices[] = {
             // positions          // colors           // texture coords
-            0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 1.0f,    1.0f, 1.0f,   // top right
-            0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,    1.0f, 0.0f,   // bottom right
-            -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-            -0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 1.0f    // top left
+            20.0f,  0.0f, 20.0f,   1.0f, 1.0f, 1.0f,    50.0f, 50.0f,   // top right
+            -20.0f, 0.0f, 20.0f,   0.0f, 1.0f, 0.0f,    50.0f, 0.0f,   // bottom right
+            -20.0f, 0.0f, -20.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+            20.0f,  0.0f, -20.0f,   1.0f, 0.0f, 0.0f,   0.0f, 50.0f    // top left
         };
         unsigned int indices[] = {
             0, 1, 3,
@@ -123,6 +122,9 @@ int main(int argc, char** argv) {
         glUniformMatrix4fv(flatRed.getUniformLocation("projection"), 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 
         Texture texture("../media/dog.png");
 
@@ -134,17 +136,17 @@ int main(int argc, char** argv) {
             glfwPollEvents();
 
 
-            if(keyW) camera.dolly(delta * 1.0f);
-            if(keyA) camera.truck(delta * -1.0);
-            if(keyS) camera.dolly(delta * -1.0);
-            if(keyD) camera.truck(delta * 1.0);
+            if(keyW) camera.dolly(delta * 4.5f);
+            if(keyA) camera.truck(delta * -4.5);
+            if(keyS) camera.dolly(delta * -4.5);
+            if(keyD) camera.truck(delta * 4.5);
 
             camera.tilt(pitch / 200.0f);
             camera.pan(yaw / 200.0f);
             pitch = yaw = 0;
 
 
-            glClearColor(1.0f, 0.933f, 0.678f, 1.0f);
+            glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             flatRed.use();
