@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0.0)
 include_directories(../include)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/build)
-add_executable(renderer main.cpp glad.c Shader.cpp Shader.h Camera.cpp Camera.h)
+add_executable(renderer main.cpp glad.c Shader.cpp Shader.h Camera.cpp Camera.h Texture.h)
 target_compile_features(renderer PRIVATE cxx_auto_type)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
